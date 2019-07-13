@@ -149,6 +149,10 @@ func TestReturn(t *testing.T) {
 	assert(t, result, expected, "Execute did not return expected value.")
 }
 
+// TODO
+// func TestActorDiesAfterTimeout(t *testing.T) {}
+// func TestActorDoesNotDieBeforeTimeout(t *testing.T) {}
+
 //==============================================================================
 // Utilities
 //==============================================================================
