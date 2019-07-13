@@ -11,19 +11,27 @@ import (
 // New returns a new registry of actor goRoutines.
 func New() Actor {
 	return Actor{
-		regi: make(map[int64]chan<- func() interface{}),
+		regi: make(map[int64]chan<- actorMessage),
 		lock: sync.Mutex{},
 	}
 }
 
-// Actor is type returned by the New function. It holds a registry of actor goRoutines.
+// Actor is type returned by the New function. It holds a registry of actor
+// goRoutines.
 type Actor struct {
-	regi map[int64]chan<- func() interface{}
+	regi map[int64]chan<- actorMessage
 	lock sync.Mutex
 }
 
-// Execute causes the actor identified by the 'hashID' to execute the function 'fun'.
+// Execute causes the actor identified by the 'hashID' to execute the function
+// 'fun'.
 func (a *Actor) Execute(hashID int64, fun func() interface{}) interface{} {
+	returnChan := make(chan interface{})
+
+	msg := actorMessage{
+		fun:        fun,
+		returnChan: returnChan,
+	}
 
 	a.lock.Lock()
 	actorChan, ok := a.regi[hashID]
@@ -33,23 +41,28 @@ func (a *Actor) Execute(hashID int64, fun func() interface{}) interface{} {
 	}
 	a.lock.Unlock()
 
-	actorChan <- fun
+	actorChan <- msg
 
-	return nil
+	return <-returnChan
 }
 
 //==============================================================================
 // Internal
 //==============================================================================
-func newActor() chan<- func() interface{} {
-	actorChan := make(chan func() interface{})
+type actorMessage struct {
+	fun        func() interface{}
+	returnChan chan<- interface{}
+}
+
+func newActor() chan<- actorMessage {
+	actorChan := make(chan actorMessage)
 	go actorRoutine(actorChan)
 	return actorChan
 }
 
-func actorRoutine(actorChan <-chan func() interface{}) {
+func actorRoutine(actorChan <-chan actorMessage) {
 	for {
-		fun := <-actorChan
-		fun()
+		msg := <-actorChan
+		msg.returnChan <- msg.fun()
 	}
 }

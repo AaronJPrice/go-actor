@@ -49,10 +49,8 @@ func TestDiffHashIDConcurrentExecution(t *testing.T) {
 	testFunB := concurrentTestFunGen(stateChanB, signalChanB)
 
 	userActor := New()
-	go func() {
-		userActor.Execute(userIDA, testFunA)
-		userActor.Execute(userIDB, testFunB)
-	}()
+	go userActor.Execute(userIDA, testFunA)
+	go userActor.Execute(userIDB, testFunB)
 
 	select {
 	case <-stateChanA:
@@ -101,16 +99,15 @@ func TestSameIdSerialised(t *testing.T) {
 		return nil
 	}
 
-	go func() {
-		userActor.Execute(userID, funA)
-		userActor.Execute(userID, funB)
-	}()
+	go userActor.Execute(userID, funA)
 
 	select {
 	case <-stateChan:
 	case <-time.After(1 * time.Second):
 		failNow(t, "Actor failed to execute function A.")
 	}
+
+	go userActor.Execute(userID, funB)
 
 	select {
 	case <-stateChan:
