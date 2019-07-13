@@ -139,10 +139,29 @@ func TestSameIdSerialised(t *testing.T) {
 	}
 }
 
+func TestReturn(t *testing.T) {
+	expected := 17
+	userActor := New()
+
+	fun := func() interface{} {
+		return expected
+	}
+
+	result := userActor.Execute(1, fun)
+
+	assert(t, result, expected, "Execute did not return expected value.")
+}
+
 //==============================================================================
 // Utilities
 //==============================================================================
 func failNow(t *testing.T, message string) {
 	t.Error(message)
 	t.FailNow()
+}
+
+func assert(t *testing.T, value interface{}, expected interface{}, failMsg string) {
+	if value != expected {
+		failNow(t, failMsg)
+	}
 }
