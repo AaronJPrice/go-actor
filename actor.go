@@ -11,5 +11,6 @@ type Actor struct {
 
 // Execute causes the actor identified by the 'hashID' to execute the function 'fun'.
 func (A Actor) Execute(hashID int64, fun func() interface{}) interface{} {
-	return fun()
+	go fun()
+	return nil
 }
