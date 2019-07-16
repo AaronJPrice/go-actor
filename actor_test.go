@@ -16,7 +16,7 @@ func TestExecution(t *testing.T) {
 		return nil
 	}
 
-	userActor := New()
+	userActor := NewWithDefaults()
 	// run this under separate routine to avoid deadlock - makes test failures harder to decipher
 	go userActor.Execute(userID, fun)
 
@@ -48,7 +48,7 @@ func TestDiffHashIDConcurrentExecution(t *testing.T) {
 	signalChanB := make(chan interface{})
 	testFunB := concurrentTestFunGen(stateChanB, signalChanB)
 
-	userActor := New()
+	userActor := NewWithDefaults()
 	go userActor.Execute(userIDA, testFunA)
 	go userActor.Execute(userIDB, testFunB)
 
@@ -82,7 +82,7 @@ func TestDiffHashIDConcurrentExecution(t *testing.T) {
 
 func TestSameIdSerialised(t *testing.T) {
 	var userID int64 = 1
-	userActor := New()
+	userActor := NewWithDefaults()
 
 	stateChan := make(chan string)
 	signalChan := make(chan interface{})
@@ -138,7 +138,7 @@ func TestSameIdSerialised(t *testing.T) {
 
 func TestReturn(t *testing.T) {
 	expected := 17
-	userActor := New()
+	userActor := NewWithDefaults()
 
 	fun := func() interface{} {
 		return expected
@@ -149,7 +149,36 @@ func TestReturn(t *testing.T) {
 	assert(t, result, expected, "Execute did not return expected value.")
 }
 
+func TestExecutionAfterTimeout(t *testing.T) {
+	var userID int64 = 1
+	testChan := make(chan interface{})
+	fun := func() interface{} {
+		testChan <- 0
+		return nil
+	}
+
+	userActor := NewWithDefaults()
+	go userActor.Execute(userID, fun)
+
+	select {
+	case <-testChan:
+	case <-time.After(1 * time.Second):
+		failNow(t, "Actor failed to execute function.")
+	}
+
+	<-time.After(50 * time.Millisecond)
+
+	go userActor.Execute(userID, fun)
+
+	select {
+	case <-testChan:
+	case <-time.After(1 * time.Second):
+		failNow(t, "Actor failed to execute second function sent after timeout.")
+	}
+}
+
 // TODO
+// Not sure how to test these (without depending on internal implementation details)...
 // func TestActorDiesAfterTimeout(t *testing.T) {}
 // func TestActorDoesNotDieBeforeTimeout(t *testing.T) {}
 

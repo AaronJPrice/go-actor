@@ -8,7 +8,7 @@ import (
 // Benchmarks
 //==============================================================================
 func BenchmarkOneActorManyRequests(b *testing.B) {
-	actorReg := New()
+	actorReg := NewWithDefaults()
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -17,7 +17,7 @@ func BenchmarkOneActorManyRequests(b *testing.B) {
 }
 
 func BenchmarkManyActorsOneRequest(b *testing.B) {
-	actorReg := New()
+	actorReg := NewWithDefaults()
 	var i int64
 
 	b.ResetTimer()
@@ -27,7 +27,7 @@ func BenchmarkManyActorsOneRequest(b *testing.B) {
 }
 
 func BenchmarkManyActorsManyRequest(b *testing.B) {
-	actorReg := New()
+	actorReg := NewWithDefaults()
 	var o, j int64
 	o = 100
 
