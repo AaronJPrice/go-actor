@@ -23,7 +23,7 @@ func TestExecution(t *testing.T) {
 	select {
 	case <-testChan:
 	case <-time.After(1 * time.Second):
-		failNow(t, "Actor failed to execute function.")
+		t.Fatal("Actor failed to execute function.")
 	}
 }
 
@@ -55,13 +55,13 @@ func TestDiffHashIDConcurrentExecution(t *testing.T) {
 	select {
 	case <-stateChanA:
 	case <-time.After(1 * time.Second):
-		failNow(t, "Actor failed to execute function A.")
+		t.Fatal(t, "Actor failed to execute function A.")
 	}
 
 	select {
 	case <-stateChanB:
 	case <-time.After(1 * time.Second):
-		failNow(t, "Actor failed to execute function B.")
+		t.Fatal(t, "Actor failed to execute function B.")
 	}
 
 	close(signalChanA)
@@ -70,13 +70,13 @@ func TestDiffHashIDConcurrentExecution(t *testing.T) {
 	select {
 	case <-stateChanA:
 	case <-time.After(1 * time.Second):
-		failNow(t, "Actor failed to execute function A.")
+		t.Fatal(t, "Actor failed to execute function A.")
 	}
 
 	select {
 	case <-stateChanB:
 	case <-time.After(1 * time.Second):
-		failNow(t, "Actor failed to execute function B.")
+		t.Fatal(t, "Actor failed to execute function B.")
 	}
 }
 
@@ -104,14 +104,14 @@ func TestSameIdSerialised(t *testing.T) {
 	select {
 	case <-stateChan:
 	case <-time.After(1 * time.Second):
-		failNow(t, "Actor failed to execute function A.")
+		t.Fatal(t, "Actor failed to execute function A.")
 	}
 
 	go userActor.Execute(userID, funB)
 
 	select {
 	case <-stateChan:
-		failNow(t, "Function B started execution before A completed.")
+		t.Fatal(t, "Function B started execution before A completed.")
 	case <-time.After(1 * time.Second):
 	}
 
@@ -120,19 +120,19 @@ func TestSameIdSerialised(t *testing.T) {
 	select {
 	case msg := <-stateChan:
 		if msg != "doneA" {
-			failNow(t, "Functions executing in wrong order.")
+			t.Fatal(t, "Functions executing in wrong order.")
 		}
 	case <-time.After(1 * time.Second):
-		failNow(t, "Function A failed to complete.")
+		t.Fatal(t, "Function A failed to complete.")
 	}
 
 	select {
 	case msg := <-stateChan:
 		if msg != "executingB" {
-			failNow(t, "Functions executing in wrong order.")
+			t.Fatal(t, "Functions executing in wrong order.")
 		}
 	case <-time.After(1 * time.Second):
-		failNow(t, "Function B failed to execute.")
+		t.Fatal(t, "Function B failed to execute.")
 	}
 }
 
@@ -163,7 +163,7 @@ func TestExecutionAfterTimeout(t *testing.T) {
 	select {
 	case <-testChan:
 	case <-time.After(1 * time.Second):
-		failNow(t, "Actor failed to execute function.")
+		t.Fatal(t, "Actor failed to execute function.")
 	}
 
 	<-time.After(50 * time.Millisecond)
@@ -173,7 +173,7 @@ func TestExecutionAfterTimeout(t *testing.T) {
 	select {
 	case <-testChan:
 	case <-time.After(1 * time.Second):
-		failNow(t, "Actor failed to execute second function sent after timeout.")
+		t.Fatal(t, "Actor failed to execute second function sent after timeout.")
 	}
 }
 
@@ -185,13 +185,8 @@ func TestExecutionAfterTimeout(t *testing.T) {
 //==============================================================================
 // Utilities
 //==============================================================================
-func failNow(t *testing.T, message string) {
-	t.Error(message)
-	t.FailNow()
-}
-
 func assert(t *testing.T, value interface{}, expected interface{}, failMsg string) {
 	if value != expected {
-		failNow(t, failMsg)
+		t.Fatal(failMsg)
 	}
 }
